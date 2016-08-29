@@ -1,0 +1,10 @@
+- name: Pull Jenkins Image
+  hosts: ec2
+  vars:
+    image_name: jenkins:1.642.2
+    host_name: ubuntu
+    port: 8080
+  become: true
+  remote_user: ubuntu
+  roles:
+    - jenkins

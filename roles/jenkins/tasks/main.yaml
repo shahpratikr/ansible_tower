@@ -1,0 +1,44 @@
+---
+- name: Copy docker.list file
+  template:
+    src: Ubuntu-{{ ansible_distribution_version }}.list
+    dest: /etc/apt/sources.list.d/docker.list
+
+- name: Install pip
+  apt: name=python-pip state=present update_cache=yes force=yes
+
+- name: Install docker py
+  pip: name=docker-py>=1.7.0
+
+- name: Install docker compose
+  pip: name=docker-compose>=1.7.0
+
+- name: restart machine
+  command: shutdown -r now
+  sudo: true
+
+- name: waiting for server to come back
+  local_action: wait_for host={{ host_name }} state=started delay=30 timeout=180
+  sudo: false
+
+- name: Install docker-engine
+  apt: name=docker-engine state=present update_cache=yes force=yes
+
+- name: Add User to docker group
+  command: usermod -aG docker {{ host_name }}
+
+- name: restart machine
+  command: shutdown -r now
+  sudo: true
+
+- name: waiting for server to come back
+  local_action: wait_for host={{ host_name }} state=started delay=30 timeout=180
+  sudo: false
+
+- name: Jenkins container
+  docker_container:
+    name: jenkins
+    image: "{{ image_name }}"
+    state: started
+    ports:
+    - "{{ port }}:{{ port }}"
